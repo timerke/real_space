@@ -1,6 +1,6 @@
 export ARCH:=arm
 #export CROSS_COMPILE:=arm-xilinx-linux-gnueabi-
-export CROSS_COMPILE:=arm-linux-gnueabihf-
+#export CROSS_COMPILE:=arm-linux-gnueabihf-
 
 CC=$(CROSS_COMPILE)gcc
 OBJDUMP=$(CROSS_COMPILE)objdump
