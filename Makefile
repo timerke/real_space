@@ -14,11 +14,17 @@ default:
 	$(OBJDUMP) -S -d -t -h xdma.ko > xdma.objdump
 
 hello.o: hello.c
-	${MAKE} -c -o hello.o hello.c
+	gcc -c -o hello.o hello.c
 
 hello: hello.o
-	${MAKE} -o hello hello.o
+	gcc -o hello hello.o
+
+example.o: example.c xdma.h
+	$(CC) -c -o example.o example.c
+
+example: example.o xdma.o
+	$(CC) -o example example.o xdma.o
 
 clean:
 	${MAKE} -C ${KERNEL_DIR} M=${PWD} clean
-	rm -rf *.lst *.objdump
+	rm -rf *.lst *.objdump hello
