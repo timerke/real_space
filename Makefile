@@ -13,11 +13,8 @@ default:
 	${MAKE} -C ${KERNEL_DIR} M=${PWD} modules
 	$(OBJDUMP) -S -d -t -h xdma.ko > xdma.objdump
 
-hello.o: hello.c
-	gcc -c -o hello.o hello.c
-
-hello: hello.o
-	gcc -o hello hello.o
+hello: hello.c
+	${MAKE} -C ${KERNEL_DIR} M=${PWD} modules
 
 example.o: example.c xdma.h
 	$(CC) -c -o example.o example.c
