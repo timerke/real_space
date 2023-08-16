@@ -13,6 +13,12 @@ default:
 	${MAKE} -C ${KERNEL_DIR} M=${PWD} modules
 	$(OBJDUMP) -S -d -t -h xdma.ko > xdma.objdump
 
+hello.o: hello.c
+	${MAKE} -c -o hello.o hello.c
+
+hello: hello.o
+	${MAKE} -o hello hello.o
+
 clean:
 	${MAKE} -C ${KERNEL_DIR} M=${PWD} clean
 	rm -rf *.lst *.objdump
