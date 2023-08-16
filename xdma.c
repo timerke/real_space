@@ -191,7 +191,8 @@ static int xdma_mmap(struct file *file, struct vm_area_struct *vma)
     vma->vm_pgoff = dma_address.physical_address >> PAGE_SHIFT;
     
     // sz
-    size_t requested_size = vma->vm_end - vma->vm_start;
+    size_t requested_size;
+    requested_size = vma->vm_end - vma->vm_start;
     DEBUGP("Kernel: vm_start=%x, vm_end=%x, rsz=%x, vm_pgoff=%x\n", (unsigned int)vma->vm_start, (unsigned int)vma->vm_end, (unsigned int)requested_size, (unsigned int)vma->vm_pgoff);
     if (requested_size > XDMA_MEM_SIZE) {
 	    printk("Kernel: mmap warning! (requested_size > XDMA_MEM_SIZE)\n");
@@ -201,8 +202,9 @@ static int xdma_mmap(struct file *file, struct vm_area_struct *vma)
     // prot
     vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
     
-    // 
-    int rc = remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff, requested_size, vma->vm_page_prot);
+    //
+    int rc; 
+    rc = remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff, requested_size, vma->vm_page_prot);
     if (rc != 0) {
         printk("Kernel: remap_pfn_range failed. er_code=%x\n", rc);
         return rc;
