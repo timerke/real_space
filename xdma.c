@@ -8,16 +8,17 @@
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
-#include <linux/kdev_t.h>   // MKDEV
-#include <linux/fs.h>       // file_operations
-#include <linux/device.h>   // class_create, device_create
-#include <linux/cdev.h>     // cdev_init
-#include <linux/errno.h>    // EINVAL, ..
+#include <linux/kdev_t.h>      // MKDEV
+#include <linux/fs.h>          // file_operations
+#include <linux/device.h>      // class_create, device_create
+#include <linux/cdev.h>        // cdev_init
+#include <linux/errno.h>       // EINVAL, ..
 #include <linux/dma-mapping.h> // ioremap_nocache, dma_alloc_coherent, ..
 #include <linux/uaccess.h>     // copy_to_user, copy_from_user
 
-#include "xdma.h"     // IOCTL_XDMA
-#include "xdma_regs.h" 
+#include "xdma.h"              // IOCTL_XDMA
+#include "xdma_regs.h"
+
 //-----------------------------------------------------------------------------
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
  MODULE_AUTHOR("Smirnov");
@@ -25,16 +26,18 @@
  MODULE_VERSION("1.0");
  MODULE_LICENSE("GPL");
 #endif // DOXYGEN_SHOULD_SKIP_THIS
+
 //-----------------------------------------------------------------------------
 /**
  * @brief DebugPrint wrap : USER must use '-DDBGP' during compilation to enable debug-data output. \n
  *        NB!!! ERROR-data information will be OUT in any case !!!
  */
 #ifdef DBGP
- #define DEBUGP(...) printk(...)
+#define DEBUGP(...) printk(...)
 #else
- #define DEBUGP(...)
+#define DEBUGP(...)
 #endif // DBGP
+
 //-----------------------------------------------------------------------------
 /**
  * @brief Struct used to hold complete DEVICE addr region data
@@ -42,24 +45,25 @@
  */
 struct dev_address_t {
     size_t physical_address; /**< Linux physical addr */
-    void  *virtual_address; /**< Linux virtual addr */
-    size_t size; /**< size of occupied memory for DEVICE, used in ioremap_nocache() */
+    void *virtual_address;   /**< Linux virtual addr */
+    size_t size;             /**< size of occupied memory for DEVICE, used in ioremap_nocache() */
 };
+
 /**
  * @brief Struct used to hold complete DMA addr region data
  * @sa xdma_open(), XDMA_MEM_SIZE
  */
 struct dma_address_t {
     dma_addr_t physical_address; /**< Linux physical addr */
-    char *virtual_address; /**< Linux virtual addr */
-    size_t size; /**< size of occupied memory for DMA, used in dma_alloc_coherent() */
+    char *virtual_address;       /**< Linux virtual addr */
+    size_t size;                 /**< size of occupied memory for DMA, used in dma_alloc_coherent() */
 };
+
 //-----------------------------------------------------------------------------
 static dev_t g_devno = MKDEV(0, 0); /**< Device type to hold the device MAJOR/MINOR numbers for current DRIVER : STAGE#0 */
-// 
-static struct class *g_cl = NULL; /**< Pointer to 'struct class' for routine 'class_create()' output : STAGE#1 */
-struct device *g_device = NULL; /**< Pointer to 'struct device' for routine 'device_create()' output : STAGE#2 */
-static struct cdev g_cdev; /**< Kernel's internal structure that represents char devices : STAGE#3 */
+static struct class *g_cl = NULL;   /**< Pointer to 'struct class' for routine 'class_create()' output : STAGE#1 */
+struct device *g_device = NULL;     /**< Pointer to 'struct device' for routine 'device_create()' output : STAGE#2 */
+static struct cdev g_cdev;          /**< Kernel's internal structure that represents char devices : STAGE#3 */
 // Addr
 struct dev_address_t dev_address; /**< DEVICE addr region data */
 struct dma_address_t dma_address; /**< DMA addr region data */
@@ -75,8 +79,7 @@ struct dma_address_t dma_address; /**< DMA addr region data */
  *  @return result of READ/WRITE operation : ZERO if success, NEGATIVE otherwise
  *  @sa xdma.h
  */
-static long xdma_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
-{
+static long xdma_ioctl(struct file *f, unsigned int cmd, unsigned long arg) {
     // dec vars
     unsigned int xdma_data;
     void *__user arg_ptr;
@@ -86,9 +89,9 @@ static long xdma_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
     
     switch(cmd) {
       
-	// XDMA_ADDRESS
-        case IOCTL_XDMA_ADDRESS : {
-	    xdma_data = dma_address.virtual_address;
+	    // XDMA_ADDRESS
+        case IOCTL_XDMA_ADDRESS: {
+	        xdma_data = dma_address.virtual_address;
             if (copy_to_user(arg_ptr, &xdma_data, sizeof(xdma_data)) != 0) {
                 printk("Unable to copy to userspace : IOCTL_XDMA_ADDRESS \n");
                 return -EFAULT;
@@ -97,7 +100,7 @@ static long xdma_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
         }
         
         // XDMA_LENGTH
-        case IOCTL_XDMA_SIZE : {
+        case IOCTL_XDMA_SIZE: {
             xdma_data = dma_address.size;
             if (copy_to_user(arg_ptr, &xdma_data, sizeof(xdma_data)) != 0) {
                 printk("Unable to copy to userspace : IOCTL_XDMA_LENGTH \n");
@@ -107,7 +110,7 @@ static long xdma_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
         }
         
         // XDMA_COMMAND
-        case IOCTL_XDMA_COMMAND : {
+        case IOCTL_XDMA_COMMAND: {
             if (copy_from_user(&xdma_data, arg_ptr, sizeof(xdma_data)) != 0) {
                 printk("Unable to copy from userspace : IOCTL_XDMA_COMMAND \n");
                 return -EFAULT;
@@ -117,7 +120,7 @@ static long xdma_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
         }
         
         // INVALID cmd
-        default : {
+        default: {
             return -EINVAL;
         }
     }
@@ -130,11 +133,10 @@ static long xdma_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 /**
  * @brief Called when USER open our device
  */
-static int xdma_open(struct inode *i, struct file *f)
-{
+static int xdma_open(struct inode *i, struct file *f) {
     // DEV
     dev_address.virtual_address = ioremap_nocache(dev_address.physical_address, dev_address.size);
-        if(!dev_address.virtual_address) {
+    if(!dev_address.virtual_address) {
         printk("Kernel: ioremap_nocache failed\n");
         return -ENOMEM;
     }
@@ -147,7 +149,7 @@ static int xdma_open(struct inode *i, struct file *f)
     {
         // init XDMA_ADDRESS
         writel(dma_address.physical_address, (dev_address.virtual_address + ADDRESS_OFFSET));
-	// init XDMA_LENGTH
+	    // init XDMA_LENGTH
         writel((dma_address.size / 4), (dev_address.virtual_address + LENGTH_OFFSET)); 
     }
     return 0;
@@ -185,18 +187,14 @@ static int xdma_close(struct inode *i, struct file *f)
  *  @return result of MMAP operation : ZERO if success, NEGATIVE otherwise
  */
 static int xdma_mmap(struct file *file, struct vm_area_struct *vma)
-{
-    // dec vars
-    size_t requested_size;
-    int rc;
-    
+{   
     vma->vm_pgoff = dma_address.physical_address >> PAGE_SHIFT;
     
     // sz
-    requested_size = vma->vm_end - vma->vm_start;
+    size_t requested_size = vma->vm_end - vma->vm_start;
     DEBUGP("Kernel: vm_start=%x, vm_end=%x, rsz=%x, vm_pgoff=%x\n", (unsigned int)vma->vm_start, (unsigned int)vma->vm_end, (unsigned int)requested_size, (unsigned int)vma->vm_pgoff);
     if (requested_size > XDMA_MEM_SIZE) {
-	printk("Kernel: mmap warning! (requested_size > XDMA_MEM_SIZE)\n");
+	    printk("Kernel: mmap warning! (requested_size > XDMA_MEM_SIZE)\n");
         //return -EAGAIN;
     }
     
@@ -204,13 +202,8 @@ static int xdma_mmap(struct file *file, struct vm_area_struct *vma)
     vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
     
     // 
-    rc = remap_pfn_range( vma, 
-                        vma->vm_start,
-			vma->vm_pgoff,  
-                        requested_size, 
-                        vma->vm_page_prot);
-    
-     if (rc != 0) {
+    int rc = remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff, requested_size, vma->vm_page_prot);
+    if (rc != 0) {
         printk("Kernel: remap_pfn_range failed. er_code=%x\n", rc);
         return rc;
     }
@@ -222,7 +215,7 @@ static int xdma_mmap(struct file *file, struct vm_area_struct *vma)
 
 //-----------------------------------------------------------------------------
 /**
- * @brief Struct points to all of XDMA device functions avalable
+ * @brief Struct points to all of XDMA device functions available
  */
 static struct file_operations g_fops = {
     .owner = THIS_MODULE,
@@ -273,7 +266,7 @@ static int __init xdma_init(void){
     // Register our character device with the kernel
     cdev_init(&g_cdev, &g_fops);
     error = cdev_add(&g_cdev, g_devno, 1);
-    if ( error < 0 ) {
+    if (error < 0) {
         device_destroy(g_cl, g_devno);
         class_destroy(g_cl);
         unregister_chrdev_region(g_devno, 1);
@@ -322,7 +315,7 @@ static void __exit xdma_exit(void){
 
 //-----------------------------------------------------------------------------
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
- module_init(xdma_init);
- module_exit(xdma_exit);
+module_init(xdma_init);
+module_exit(xdma_exit);
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 //-----------------------------------------------------------------------------
