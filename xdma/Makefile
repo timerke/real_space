@@ -1,6 +1,6 @@
 KERNEL_VERSION = $(shell uname -r)
 PWD = $(shell pwd)
-obj-m = hello.o
+obj-m = xdma.o
 
 all:
 	make -C /lib/modules/$(KERNEL_VERSION)/build M=$(PWD) modules
