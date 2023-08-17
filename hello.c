@@ -1,16 +1,23 @@
-#include <linux/module.h>       /* Needed by all modules */
-#include <linux/kernel.h>       /* Needed for KERN_INFO */
-#include <linux/init.h>         /* Needed for the macros */
+/* Kernel Programming */
 
-static int __init hello_start(void) {
-    printk(KERN_INFO "Loading hello module...\n");
-    printk(KERN_INFO "Hello world\n");
+#define MODULE
+#define LINUX
+#define __KERNEL__
+
+#include <linux/module.h>  /* Needed by all modules */
+#include <linux/kernel.h>  /* Needed for KERN_ALERT */
+
+
+int init_module(void) {
+    printk("Hello world.\n");
+    // A non 0 return means init_module failed; module can't be loaded.
     return 0;
 }
 
-static void __exit hello_end(void) {
-    printk(KERN_INFO "Goodbye Mr.\n");
+
+void cleanup_module(void) {
+    printk(KERN_ALERT "Goodbye world.\n");
 }
 
-module_init(hello_start);
-module_exit(hello_end);
+
+MODULE_LICENSE("GPL");
