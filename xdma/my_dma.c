@@ -16,7 +16,7 @@
 #include <linux/dma-mapping.h> // ioremap_nocache, dma_alloc_coherent, ..
 #include <linux/uaccess.h>     // copy_to_user, copy_from_user
 
-#include "xdma.h"              // IOCTL_XDMA
+#include "my_dma.h"              // IOCTL_XDMA
 #include "xdma_regs.h" 
 
 //-----------------------------------------------------------------------------

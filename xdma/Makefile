@@ -8,7 +8,7 @@ obj-m = my_dma.o
 
 all:
 	make -C $(KERNEL_DIR) M=$(PWD) modules
-	$(OBJDUMP) -S -d -t -h xdma.ko > xdma.objdump
+	$(OBJDUMP) -S -d -t -h my_dma.ko > xdma.objdump
 
 clean:
 	make -C $(KERNEL_DIR) M=$(PWD) clean
