@@ -7,7 +7,7 @@
 #ifndef _XDMA_H_
 //-----------------------------------------------------------------------------
 // glbl
-#define XDMA_DEV_NAME           "xdma"          // noted in "/dev/XDMA_DEV_NAME"
+#define XDMA_DEV_NAME           "my_dma"          // noted in "/dev/XDMA_DEV_NAME"
 #define XDMA_MEM_SIZE           (4*(2048*2048))  
 //-----------------------------------------------------------------------------
 // driver INFo codes
@@ -30,7 +30,7 @@
 
 //  -> requests code
 #define IOCTL_XDMA_ADDRESS      XDMA_MAKE_IOCTL(XDMA_DEVICE_TYPE, XDMA_ADDRESS)
-#define IOCTL_XDMA_SIZE   	XDMA_MAKE_IOCTL(XDMA_DEVICE_TYPE, XDMA_SIZE)
+#define IOCTL_XDMA_SIZE   	    XDMA_MAKE_IOCTL(XDMA_DEVICE_TYPE, XDMA_SIZE)
 #define IOCTL_XDMA_COMMAND   	XDMA_MAKE_IOCTL(XDMA_DEVICE_TYPE, XDMA_COMMAND)
 
 //-----------------------------------------------------------------------------
