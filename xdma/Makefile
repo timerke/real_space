@@ -1,9 +1,15 @@
-KERNEL_VERSION = $(shell uname -r)
+export ARCH:=arm
+export CROSS_COMPILE:=arm-linux-gnueabihf-
+CC = $(CROSS_COMPILE)gcc
+OBJDUMB = $(CROSS_COMPILE)objdump
+KERNEL_DIR = /home/user/buildroot-2016.08.1/output/build/linux-xilinx-v2016.2
 PWD = $(shell pwd)
 obj-m = xdma.o
 
 all:
-	make -C /lib/modules/$(KERNEL_VERSION)/build M=$(PWD) modules
+	make -C $(KERNEL_DIR) M=$(PWD) modules
+	$(OBJDUMP) -S -d -t -h xdma.ko > xdma.objdump
 
 clean:
-	make -C /lib/modules/$(KERNEL_VERSION)/build M=$(PWD) clean
+	make -C $(KERNEL_DIR) M=$(PWD) clean
+	rm -rf *.lst *.objdump
